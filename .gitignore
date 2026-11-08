@@ -1,1 +1,3 @@
 .file_server_info.txt
+.env
+.env.*
