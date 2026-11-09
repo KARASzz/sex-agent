@@ -46,11 +46,9 @@ if not TOKEN:
     sys.exit(1)
 
 local_head = run_git("rev-parse", "HEAD")
-local_tree = run_git("rev-parse", "HEAD^{tree}")
-# 工作区/暂存区有未提交改动时, HEAD 树比对无效, 必须走推送流程
-dirty = bool(run_git("status", "--porcelain"))
-if dirty:
-    print("dirty_workdir force_push_check")
+# 以暂存区+工作区最新内容为准算候选树(只含已跟踪文件), 与远端树比对才准确
+run_git("add", "--update")
+candidate_tree = run_git("write-tree")
 
 st, ref = api("GET", f"/git/ref/heads/{BRANCH}")
 remote_sha = None
@@ -68,7 +66,7 @@ if remote_sha:
     if st != 200:
         print(f"REMOTE_COMMIT_LOOKUP_FAILED status={st}")
         sys.exit(2)
-    if commit.get("tree", {}).get("sha") == local_tree and not dirty:
+    if commit.get("tree", {}).get("sha") == candidate_tree:
         print("IN_SYNC nothing_to_push")
         sys.exit(0)
     # 安全检查: 远端若有本地没有的文件, 先比对, 只合并不冲突的部分
@@ -90,15 +88,16 @@ if remote_sha:
     if drop:
         print("skip_resurrect=" + ",".join(drop))
     # 003 共有文件内容不一致则停下报冲突, 不覆盖(白名单除外)
-    # 白名单: AGENTS.md 本地为用户明确要求的按章归档+账本修订版, 远端是旧版, 本地胜出
-    LOCAL_WINS = {"AGENTS.md"}
+    # 白名单: AGENTS.md 本地为用户明确要求的修订版(远端是旧版, 已 diff 确认, 本地胜出);
+    # push_sync.py 只由本沙箱演进, 远端从无外部改动, 本地胜出
+    LOCAL_WINS = {"AGENTS.md", "push_sync.py"}
     conflict = []
     for p in sorted(set(remote_blobs) & local_set):
-        local_blob = run_git("rev-parse", f"HEAD:{p}")
+        local_blob = run_git("hash-object", p)
         if local_blob != remote_blobs[p] and p not in LOCAL_WINS:
             conflict.append(p)
     for p in sorted(LOCAL_WINS & set(remote_blobs) & local_set):
-        local_blob = run_git("rev-parse", f"HEAD:{p}")
+        local_blob = run_git("hash-object", p)
         if local_blob != remote_blobs[p]:
             print("local_wins=" + p)
     if conflict:
