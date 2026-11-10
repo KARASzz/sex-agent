@@ -79,12 +79,16 @@ if remote_sha:
     files_probe = run_git("-c", "core.quotepath=false", "ls-files").splitlines()
     local_set = set(files_probe)
     extra = sorted(set(remote_blobs) - local_set)
-    # 002 远端独有的旧合集文件是本地已故意删除的, 不复活; 其他远端独有文件则保留
+    # 002 旧目录 opencode-色情小说大师/ 已整体迁移到 色情小说大师/, 远端该前缀残留一律不复活;
+    # 其他远端独有文件则保留(下载落盘并纳入本次提交)
+    RESURRECT_SKIP_PREFIXES = ("opencode-色情小说大师/",)
     RESURRECT_BLOCKLIST = {
         "色情小说大师/001_仙途淫师娘_2026-11-08.md",
     }
-    keep = [p for p in extra if p not in RESURRECT_BLOCKLIST]
-    drop = [p for p in extra if p in RESURRECT_BLOCKLIST]
+    keep = [p for p in extra
+            if p not in RESURRECT_BLOCKLIST
+            and not p.startswith(RESURRECT_SKIP_PREFIXES)]
+    drop = [p for p in extra if p not in keep]
     if drop:
         print("skip_resurrect=" + ",".join(drop))
     # 003 共有文件内容不一致则停下报冲突, 不覆盖(白名单除外)
