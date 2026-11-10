@@ -81,7 +81,7 @@ if remote_sha:
     extra = sorted(set(remote_blobs) - local_set)
     # 002 远端独有的旧合集文件是本地已故意删除的, 不复活; 其他远端独有文件则保留
     RESURRECT_BLOCKLIST = {
-        "opencode-色情小说大师/001_仙途淫师娘_2026-11-08.md",
+        "色情小说大师/001_仙途淫师娘_2026-11-08.md",
     }
     keep = [p for p in extra if p not in RESURRECT_BLOCKLIST]
     drop = [p for p in extra if p in RESURRECT_BLOCKLIST]
