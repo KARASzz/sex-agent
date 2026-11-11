@@ -93,8 +93,9 @@ if remote_sha:
         print("skip_resurrect=" + ",".join(drop))
     # 003 共有文件内容不一致则停下报冲突, 不覆盖(白名单除外)
     # 白名单: AGENTS.md 本地为用户明确要求的修订版(远端是旧版, 已 diff 确认, 本地胜出);
-    # push_sync.py 只由本沙箱演进, 远端从无外部改动, 本地胜出
-    LOCAL_WINS = {"AGENTS.md", "push_sync.py"}
+    # push_sync.py 只由本沙箱演进, 远端从无外部改动, 本地胜出;
+    # 000_账本.md 仅本沙箱写入, 冲突时须先下载 diff, 确认远端只是旧版(无外部改动)方可按本地胜出
+    LOCAL_WINS = {"AGENTS.md", "push_sync.py", "色情小说大师/000_账本.md"}
     conflict = []
     for p in sorted(set(remote_blobs) & local_set):
         local_blob = run_git("hash-object", p)

@@ -37,5 +37,5 @@
 
 - 本沙箱 `git push/fetch` 与 `curl` 走原生网络会崩（qroot signal 6），一律改用工作区根目录的 `./push_sync.py` 走 GitHub API 推送。
 - 凭证用 `/root/.config/github_token`，只在命令内引用，绝不打印、绝不写入项目。
-- 脚本先查远端 main：树一致则 IN_SYNC 无事可做；有分歧先报冲突停下，不硬盖；已故意删除的旧合集文件不复活；AGENTS.md 等本地修订版胜出前必须先 diff 确认远端是旧版。
+- 脚本先查远端 main：树一致则 IN_SYNC 无事可做；有分歧先报冲突停下，不硬盖；已故意删除的旧合集文件不复活；AGENTS.md 等本地修订版胜出前必须先 diff 确认远端是旧版；账本冲突必须先下载 diff，确认远端只是旧版且无外部改动后，才可按本地胜出推送。
 - 推完复跑一次脚本，显示 `IN_SYNC` 为准。
